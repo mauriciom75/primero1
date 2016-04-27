@@ -1,0 +1,11 @@
+{
+  "name": "ejemplo_docker_rocky_consul",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Node.js Hello rocky-consul app using docker",
+  "author": "Mauricio",
+  "dependencies": {
+    "rocky": "0.4.1",
+	"rocky-consul": "0.1.1"
+  }
+}

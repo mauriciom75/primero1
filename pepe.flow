@@ -1,0 +1,272 @@
+<bpel:process name="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" targetNamespace="http://xmlns.oracle.com/ProbandoArgentina/ProductCatalog-GetOfferings/" bea:name="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" rescon:snippetVersion="1.0" xmlns:tns="http://xmlns.oracle.com/ProbandoArgentina/ProductCatalog-GetOfferings/" xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable" xmlns:rescon="http://www.bea.com/alsb/flow/resources/config" xmlns:bea="http://www.bea.com/bpel/ui/extensions" xmlns:ext="http://www.bea.com/bpel/extensions" xmlns:expr="http://www.bea.com/wli/sb/stages/config" xmlns:trf="http://www.bea.com/wli/sb/stages/transform/config" xmlns:bind="http://telefonica.com/globalIntegration/OSB/common/SplitJoinInterface/v1" xmlns:ns0="http://www.bea.com/wli/sb/reference" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns1="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns2="http://www.movistar.com.ar/ws/schema/amdocs/AMDOCS_OMS_MobileAppsServices" xmlns:v1="http://telefonica.com/globalIntegration/OSB/common/splitJoin/v1" xmlns:ns3="http://telefonica.com/globalIntegration/services/SOAP/ProductCatalog-GetOfferings/v2" xmlns:ns4="http://www.bea.com/wli/sb/stages/logging/config" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns5="http://telefonica.com/globalIntegration/OSB/common/ErrorMappingService/v1" xmlns:v11="http://telefonica.com/globalIntegration/OSB/common/errorMapping/v1" xmlns:tfault="http://telefonica.com/globalIntegration/fault" xmlns:ns6="http://telefonica.com/globalIntegration/OSB/common/execlogger/ExecutionLogService/v1" xmlns:ctx="http://www.bea.com/wli/sb/context" xmlns:tp="http://www.bea.com/wli/sb/transports" xmlns:amd="http://www.telefonica.com.ar/ws/schema/amdocs/AMDOCS_OMS_MobileAppsServices" xmlns:ns7="http://telefonica.com/globalIntegration/OSB/common/execlogger/v1" xmlns:ns8="http://www.bea.com/wli/sb/pipeline/config"
+              xmlns:ns9="http://customSplitJoinError" xmlns:ns10="customSplitJoinError_namespace">
+    <rescon:importInfo>
+        <rescon:schema-import ref="ArchitectureServices/common/Resources/envelope"/>
+        <rescon:wsdl-import ref="ProductCatalog-GetOfferings_Mirror/ProductCatalog-GetOfferingsDSGO/Specifications/WSDL/MobileAppsServices_1"/>
+        <rescon:wsdl-import ref="ProductCatalog-GetOfferings_Mirror/common/Specifications/WSDL/ProductCatalog-GetOfferings_v2"/>
+        <rescon:wsdl-import ref="ArchitectureServices/common/WSDL/ErrorMappingService_v1"/>
+    </rescon:importInfo>
+    <bpel:partnerLinks>
+        <bpel:partnerLink name="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" partnerLinkType="tns:ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" myRole="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2">
+	       </bpel:partnerLink>
+        <bpel:partnerLink name="MobileAppsServicesHTTP_retrieveProductOfferingForReplaceDSILocal_v3"
+                          partnerLinkType="tns:MobileAppsServicesHTTP_retrieveProductOfferingForReplaceDSILocal_v3"
+                          partnerRole="MobileAppsServicesHTTP_retrieveProductOfferingForReplaceDSILocal_v3"/>
+        <bpel:partnerLink name="MobileAppsServicesHTTP_retrieveAvailableAdditionalServicesDSILocal_v3"
+                          partnerLinkType="tns:MobileAppsServicesHTTP_retrieveAvailableAdditionalServicesDSILocal_v3"
+                          partnerRole="MobileAppsServicesHTTP_retrieveAvailableAdditionalServicesDSILocal_v3"/>
+    </bpel:partnerLinks>
+
+    <bpel:variables>
+        <bpel:variable name="request" messageType="bind:requestMessage"/> 
+        <bpel:variable name="response" messageType="bind:responseMessage"/>
+        <bpel:variable name="retrieveServices_WrapperResp" messageType="bind:responseMessage"/>
+        <bpel:variable name="retrieveProduct_WrapperResp" messageType="bind:responseMessage"/>
+        <bpel:variable name="serviceDecisor" type="xsd:anyType"/>
+        <bpel:variable name="aggregateHeaderResponse" element="ns1:Header"/>
+        <bpel:variable name="aggregateBodyResponse" messageType="ns3:getOfferingsResponse"/>
+    </bpel:variables>
+    <bpel:faultHandlers>
+        <bpel:catch faultName="ns10:INTERNAL_SPLITJOIN_ERROR" ext:soapFaultVariable="customFlowError"
+                    bea:name="Custom managed error">
+            <bpel:sequence>
+                <bpel:empty/>
+                <bpel:assign>
+                    <bpel:extensionAssignOperation>
+                        <trf:replace contents-only="true" varName="customFlowError">
+                            <trf:location>
+                                <expr:xpathText>.</expr:xpathText>
+                            </trf:location>
+                            <trf:expr>
+                                <expr:xqueryTransform>
+                                    <expr:resource ref="ProductCatalog-GetOfferings_Mirror/ProductCatalog-GetOfferingsDSGO/Specifications/Transformations/generateInternalSplitJoinFault"/>
+                                </expr:xqueryTransform>
+                            </trf:expr>
+                        </trf:replace>
+                    </bpel:extensionAssignOperation>
+                </bpel:assign>
+                <bpel:reply operation="execute" partnerLink="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2"
+                            ext:soapFaultVariable="customFlowError" faultName="tns:userFault"/>
+                <bpel:exit/>
+            </bpel:sequence>
+        </bpel:catch>
+        <bpel:catchAll ext:soapFaultVariable="genericError">
+            <bpel:sequence>
+                <bpel:empty/>
+                <bpel:rethrow/>
+            </bpel:sequence>
+        </bpel:catchAll>
+    </bpel:faultHandlers>
+    <bpel:sequence>
+        <bpel:receive partnerLink="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" operation="execute" variable="request" createInstance="yes">
+	           <rescon:receiveInfo>
+                <rescon:wsdl ref="ArchitectureServices/common/WSDL/SplitJoinInterface_v1" binding="bind:execute_bind"/>
+            </rescon:receiveInfo>
+        </bpel:receive>
+        <bpel:scope bea:name="">
+            <bpel:sequence>
+                <bpel:assign>
+                    <bpel:extensionAssignOperation bea:name="Service Decisor">
+                        <trf:assign varName="serviceDecisor">
+                            <trf:expr>
+                                <expr:xqueryTransform>
+                                    <expr:resource ref="ProductCatalog-GetOfferings_Mirror/ProductCatalog-GetOfferingsDSGO/Specifications/Transformations/service_Decisor"/>
+                                    <expr:param name="reqBody">
+                                        <expr:path>$request.part1/v1:body/*</expr:path>
+                                    </expr:param>
+                                </expr:xqueryTransform>
+                            </trf:expr>
+                        </trf:assign>
+                    </bpel:extensionAssignOperation>
+                </bpel:assign>
+                <bpel:if bea:name="Generate flow error">
+                    <bpel:condition>$serviceDecisor/retrieveProduct = 'false' and $serviceDecisor/retrieveServices = 'false'</bpel:condition>
+                    <bpel:sequence>
+                        <bpel:empty/>
+                        <bpel:throw faultName="ns10:INTERNAL_SPLITJOIN_ERROR"/>
+                    </bpel:sequence>
+                    <bpel:else>
+                        <bpel:sequence>
+                            <bpel:empty/>
+                        </bpel:sequence>
+                    </bpel:else>
+                </bpel:if>
+            </bpel:sequence>
+        </bpel:scope>
+        <bpel:scope bea:name="Inicialize variables">
+            <bpel:sequence>
+                <bpel:assign>
+                    <bpel:extensionAssignOperation bea:name="Assign Action">
+                        <trf:assign varName="retrieveServices_WrapperResp.part1">
+                            <trf:expr>
+                                <expr:xqueryText>&lt;v1:commonSplitJoinRequest/></expr:xqueryText>
+                            </trf:expr>
+                        </trf:assign>
+                    </bpel:extensionAssignOperation>
+                </bpel:assign>
+                <bpel:assign>
+                    <bpel:extensionAssignOperation>
+                        <trf:assign varName="retrieveProduct_WrapperResp.part1">
+                            <trf:expr>
+                                <expr:xqueryText>&lt;v1:commonSplitJoinRequest/></expr:xqueryText>
+                            </trf:expr>
+                            <trf:expr>
+                                <expr:xqueryText>&lt;v1:commonSplitJoinRequest/></expr:xqueryText>
+                            </trf:expr>
+                        </trf:assign>
+                    </bpel:extensionAssignOperation>
+                </bpel:assign>
+            </bpel:sequence>
+        </bpel:scope>
+        <bpel:flow>
+            <bpel:scope bea:name="retrieveAvailableAdditionalServices">
+                <bpel:faultHandlers>
+                    <bpel:catchAll ext:soapFaultVariable="backEndFault">
+                        <bpel:sequence>
+                            <bpel:empty/>
+                            <bpel:reply operation="execute" partnerLink="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" ext:soapFaultVariable="backEndFault" faultName="tns:userFault"/>
+                            <bpel:exit/>
+                        </bpel:sequence>
+                    </bpel:catchAll>
+                </bpel:faultHandlers>
+                <bpel:sequence>
+                    <bpel:if>
+                        <bpel:condition>$serviceDecisor/retrieveServices = 'true'</bpel:condition>
+                        <bpel:sequence>
+                            <bpel:empty/>
+                            <bpel:invoke partnerLink="MobileAppsServicesHTTP_retrieveAvailableAdditionalServicesDSILocal_v3"
+                                         operation="execute" inputVariable="request"
+                                         outputVariable="retrieveServices_WrapperResp">
+                                <rescon:invokeInfo>
+                                    <rescon:service ref="ProductCatalog-GetOfferings_Mirror/ProductCatalog-GetOfferingsDSGO/ProxyServices/MobileAppsServicesHTTP_retrieveAvailableAdditionalServicesDSILocal_v3"
+                                                    xsi:type="ns0:ProxyRef"/>
+                                </rescon:invokeInfo>
+                            </bpel:invoke>
+                        </bpel:sequence>
+                        <bpel:else>
+                            <bpel:sequence>
+                                <bpel:empty/>
+                            </bpel:sequence>
+                        </bpel:else>
+                    </bpel:if>
+                </bpel:sequence>
+            </bpel:scope>
+            <bpel:scope bea:name="retrieveProductOfferingForReplace">
+                <bpel:faultHandlers>
+                    <bpel:catchAll ext:soapFaultVariable="backEndFault">
+                        <bpel:sequence>
+                            <bpel:empty/>
+                            <bpel:reply operation="execute" partnerLink="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" ext:soapFaultVariable="backEndFault" faultName="tns:userFault"/>
+                            <bpel:exit/>
+                        </bpel:sequence>
+                    </bpel:catchAll>
+                </bpel:faultHandlers>
+                <bpel:sequence>
+                    <bpel:if>
+                        <bpel:condition>$serviceDecisor/retrieveProduct = 'true'</bpel:condition>
+                        <bpel:sequence>
+                            <bpel:empty/>
+                            <bpel:invoke partnerLink="MobileAppsServicesHTTP_retrieveProductOfferingForReplaceDSILocal_v3"
+                                         operation="execute" inputVariable="request"
+                                         outputVariable="retrieveProduct_WrapperResp">
+                                <rescon:invokeInfo>
+                                    <rescon:service ref="ProductCatalog-GetOfferings_Mirror/ProductCatalog-GetOfferingsDSGO/ProxyServices/MobileAppsServicesHTTP_retrieveProductOfferingForReplaceDSILocal_v3"
+                                                    xsi:type="ns0:ProxyRef"/>
+                                </rescon:invokeInfo>
+                            </bpel:invoke>
+                        </bpel:sequence>
+                        <bpel:else>
+                            <bpel:sequence>
+                                <bpel:empty/>
+                            </bpel:sequence>
+                        </bpel:else>
+                    </bpel:if>
+                </bpel:sequence>
+            </bpel:scope>
+        </bpel:flow>
+        <bpel:scope bea:name="Aggregate data response">
+            <bpel:faultHandlers>
+                <bpel:catchAll ext:soapFaultVariable="scopeError">
+                    <bpel:sequence>
+                        <bpel:empty/>
+                        <bpel:reply operation="execute" partnerLink="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" ext:soapFaultVariable="scopeError" faultName="tns:userFault"/>
+                        <bpel:exit/>
+                    </bpel:sequence>
+                </bpel:catchAll>
+            </bpel:faultHandlers>
+            <bpel:sequence>
+                <bpel:assign>
+                    <bpel:extensionAssignOperation bea:name="Header Response">
+                        <trf:assign varName="aggregateHeaderResponse">
+                            <trf:expr>
+                                <expr:xqueryTransform>
+                                    <expr:resource ref="ProductCatalog-GetOfferings_Mirror/ProductCatalog-GetOfferingsDSGO/Specifications/Transformations/Header_AggregateResponse"/>
+                                    <expr:param name="MCI_HeadersReq">
+                                        <expr:path>$request.part1/v1:header/*[1]</expr:path>
+                                    </expr:param>
+                                    <expr:param name="onError">
+                                        <expr:path>false()</expr:path>
+                                    </expr:param>
+                                    <expr:param name="retrieveProductOfferingForReplace_HeadersResp">
+                                        <expr:path>if($serviceDecisor/retrieveProduct = 'true') then
+                                                   $retrieveProduct_WrapperResp.part1/v1:header else ()</expr:path>
+                                    </expr:param>
+                                    <expr:param name="retrieveAvailableAdditionalServices_HeadersResp">
+                                        <expr:path>if($serviceDecisor/retrieveServices = 'true') then
+                                                   $retrieveServices_WrapperResp.part1/v1:header else ()</expr:path>
+                                    </expr:param>
+                                </expr:xqueryTransform>
+                            </trf:expr>
+                        </trf:assign>
+                    </bpel:extensionAssignOperation>
+                </bpel:assign>
+                <bpel:assign>
+                    <bpel:extensionAssignOperation bea:name="Body Response">
+                        <trf:assign varName="aggregateBodyResponse.getOfferingsBodyRes">
+                            <trf:expr>
+                                <expr:xqueryTransform>
+                                    <expr:resource ref="ProductCatalog-GetOfferings_Mirror/ProductCatalog-GetOfferingsDSGO/Specifications/Transformations/Body_AggregateResponse"/>
+                                    <expr:param name="retrieveAvailableAdditionalServices_BodyResp">
+                                        <expr:path>if($serviceDecisor/retrieveServices = 'true') then
+                                                   $retrieveServices_WrapperResp.part1/v1:body/*[1] else()</expr:path>
+                                    </expr:param>
+                                    <expr:param name="retrieveProductOfferingForReplace_BodyResp">
+                                        <expr:path>if($serviceDecisor/retrieveProduct = 'true') then
+                                                   $retrieveProduct_WrapperResp.part1/v1:body/*[1] else()</expr:path>
+                                    </expr:param>
+                                </expr:xqueryTransform>
+                            </trf:expr>
+                        </trf:assign>
+                    </bpel:extensionAssignOperation>
+                </bpel:assign>
+                <bpel:assign>
+                    <bpel:extensionAssignOperation bea:name="Prepare response">
+                        <trf:assign varName="response.part1">
+                            <trf:expr>
+                                <expr:xqueryTransform>
+                                    <expr:resource ref="ArchitectureServices/common/Specifications/Transformations/XQuery/PrepareSplitJoinContextResponse"/>
+                                    <expr:param name="body">
+                                        <expr:path>$aggregateBodyResponse.getOfferingsBodyRes</expr:path>
+                                    </expr:param>
+                                    <expr:param name="outbound">
+                                        <expr:path>()</expr:path>
+                                    </expr:param>
+                                    <expr:param name="inbound">
+                                        <expr:path>()</expr:path>
+                                    </expr:param>
+                                    <expr:param name="fault">
+                                        <expr:path>()</expr:path>
+                                    </expr:param>
+                                    <expr:param name="header">
+                                        <expr:path>$aggregateHeaderResponse</expr:path>
+                                    </expr:param>
+                                </expr:xqueryTransform>
+                            </trf:expr>
+                        </trf:assign>
+                    </bpel:extensionAssignOperation>
+                </bpel:assign>
+            </bpel:sequence>
+        </bpel:scope>
+        <bpel:reply partnerLink="ProductCatalog-GetOfferingsDSSGOSplitJoin_v2" operation="execute" variable="response"/>
+    </bpel:sequence>
+</bpel:process>
